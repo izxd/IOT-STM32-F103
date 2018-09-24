@@ -1,56 +1,34 @@
 #include "stm32f10x.h"
-#include "bsp_led.h"
-#include "bsp_key.h"
-#include "bsp_exti.h"
-#include "bsp_clkconfig.h"
-#include "bsp_SysTick.h"
+#include "bsp_dht11.h"
+#include "bsp_systick2.h"
 #include "bsp_usart.h"
-
-void Delay(uint32_t count)
-{
-	for(;count != 0; count--);
-}
+#include "bsp_led.h"
 
 int main(void)
 {
-	/* 初始化USART配置模式为。。。 */
+	unsigned char temp[4],humi[4];
+	unsigned char prints[9];
 	
-	//USART_Config();
+	USART_Config();
 	
-	//Usart_SendString(DEBUG_USARTx, "this is string .\n");
-	
-	//HSE_SetSysClock(RCC_PLLMul_9);
-	//LED_GPIO_Config();
-	//GPIO_SetBits(LED_G_GPIO_PORT, LED_G_GPIO_PIN);
-	
-	//Key_GPIO_Config();
-	// EXIT_Key_Config();
-	while(1)
-	{
-		// nesting vector interrupt
-//		if(Key_Scan(KEY1_GPIO_PORT, KEY1_GPIO_PIN) == KEY_ON)
-//		{
-//			LED_G(OFF);
-//		}
-//		
-//		if(Key_Scan(KEY2_GPIO_PORT, KEY2_GPIO_PIN) == KEY_ON)
-//		{
-//			LED_G(ON);
-//		}
+	while(1){
 		
-		//LED_G(OFF);
-		//SysTick_Delay_ms(500);
-		//Delay(0xFFFFFF);
-		//LED_G(ON);
-		//SysTick_Delay_ms(500);
-		//Delay(0xFFFFFF);
+	  dht11_value(temp,humi);
 		
-		// GPIO_SetBits(LED_G_GPIO_PORT, LED_G_GPIO_PIN);
+		prints[0] = temp[0];
+		prints[1] = temp[1];
+		prints[2] = temp[2];
+		prints[3] = temp[3];
 		
-		//GPIO_ResetBits(LED_G_GPIO_PORT, LED_G_GPIO_PIN);
+		prints[4] = humi[0];
+		prints[5] = humi[1];
+		prints[6] = humi[2];
+		prints[7] = humi[3];
 		
+	  Usart_SendString(DEBUG_USARTx, prints);
+		
+		SysTick_Delay_ms2(1000);
 	}
-	
 	
 }
 

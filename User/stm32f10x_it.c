@@ -23,6 +23,10 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f10x_it.h"
+#include <stdio.h>
+#include "bsp_systick_wifi.h"
+#include "bsp_usart2.h"
+#include "wifi_config.h"
 
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
@@ -134,6 +138,7 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
+	TimingDelay_Decrement();	
 }
 
 /******************************************************************************/
@@ -142,6 +147,31 @@ void SysTick_Handler(void)
 /*  available peripheral interrupt handler's name please refer to the startup */
 /*  file (startup_stm32f10x_xx.s).                                            */
 /******************************************************************************/
+
+void USART2_IRQHandler( void )
+{	
+	char ch;
+	
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)
+	{
+		ch  = USART_ReceiveData( USART2 );
+		
+		if( strEsp8266_Fram_Record .InfBit .FramLength < ( RX_BUF_MAX_LEN - 1 ) )                       //预留1个字节写结束符
+		{
+				strEsp8266_Fram_Record .Data_RX_BUF [ strEsp8266_Fram_Record .InfBit .FramLength ++ ]  = ch;
+
+		}
+	}
+	 	 
+	if ( USART_GetITStatus( USART2, USART_IT_IDLE ) == SET )                                         //数据帧接收完毕
+	{
+    strEsp8266_Fram_Record .InfBit .FramFinishFlag = 1;
+		
+		ch = USART_ReceiveData( USART2 );                                                              //由软件序列清除中断标志位(先读USART_SR，然后读USART_DR)
+	
+  }	
+
+}
 
 /**
   * @brief  This function handles PPP interrupt request.
